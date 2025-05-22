@@ -7,5 +7,4 @@ class Seccion:
         self.horarios = horarios  # Lista de tuplas (dia, timeslot). una tupla x clase
 
     def __repr__(self):
-        return f"{self.materia} C{self.seccion_id}: {self.horarios}"
-    
+        return f"{self.materia} Sección{self.seccion_id}: {self.horarios}"
