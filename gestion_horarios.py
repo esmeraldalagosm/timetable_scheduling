@@ -12,6 +12,7 @@ import csv
 from seccion import Seccion
 from collections import defaultdict
 from itertools import product
+import tkinter as tk
 
 #carga de datos. Armo Secciones de las materias a las que me quier inscribir
 def upload_sections(path_csv, wanted_classes):
@@ -32,7 +33,7 @@ def upload_sections(path_csv, wanted_classes):
             materia = fila["Materia"]
             if materia in wanted_classes:
                 seccion_id = int(fila["Sección"])
-                dia = fila["Día"]
+                dia = fila["Día"].strip()
                 timeslot = int(fila["Timeslot"])
                 secciones_temp[(materia, seccion_id)].append((dia, timeslot))
 
@@ -99,4 +100,94 @@ def generar_timetables_validos(path_csv, wanted_classes):
             combinaciones_validas.append(comb)
 
     return combinaciones_validas
+
+
+archivo = "data_prueba.csv" ### COMPLETAR CON ARCHIVO PROPIO (respetar formato)
+quiero = ["Algebra", "Matemática"] ### COMPLETAR CON LISTA DE MATERIAS
+timetables = generar_timetables_validos(archivo, quiero)
+print(timetables)
+
+# -----------------------------------
+# INTERFAZ con Tkinter
+
+dias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes"] 
+timeslots = [1, 2, 3, 4, 5]
+colores = ["#AEC6CF", "#FFB347", "#B39EB5", "#77DD77", "#FF6961", "#FDFD96"] #asumiendo que nunca me anoto en más de 6 materias. 
+"""
+quiero[i] corresponde a colores[i]
+"""
+root = tk.Tk()
+root.title("Generador de Horarios")
+
+# Etiquetas días
+for col, dia in enumerate(dias, start=1):
+    tk.Label(root, text=dia, borderwidth=1, relief="solid", width=12).grid(row=0, column=col)
+
+# Etiquetas timeslots
+for row, ts in enumerate(timeslots, start=1):
+    tk.Label(root, text=f"Slot {ts}", borderwidth=1, relief="solid", width=10).grid(row=row, column=0)
+
+# Contenedor para las etiquetas de materias
+celdas = {}
+
+
+def mostrar_combinacion(index):
+    # Limpiar etiquetas previas
+    for label in celdas.values():
+        label.destroy()
+    celdas.clear()
+
+    if index < 0 or index >= len(timetables):
+        return
+
+    combinacion = timetables[index]
+    root.title(f"Generador de Horarios - Combinación {index+1} de {len(timetables)}")
+
+    # Crear dict para fácil acceso (dia, timeslot) -> materia+sección
+    horario = {}
+    for seccion in combinacion:
+        for dia, ts in seccion.horarios:
+            horario[(dia, ts)] = f"{seccion.materia} S{seccion.seccion_id}"
+    # Pintar en grid
+    for (dia, ts), texto in horario.items():
+        col = dias.index(dia) + 1
+        row = ts
+        
+        materia = texto.split(" S")[0]
+        k = quiero.index(materia)
+
+        label = tk.Label(root, text=texto, bg=colores[k], borderwidth=1, relief="solid", width=12)
+        label.grid(row=row, column=col, sticky="nsew")
+        celdas[(row, col)] = label
+        
+
+# Variables para controlar índice
+indice_actual = 0
+
+# Botones para navegar
+def anterior():
+    global indice_actual
+    if indice_actual > 0:
+        indice_actual -= 1
+        mostrar_combinacion(indice_actual)
+
+def siguiente():
+    global indice_actual
+    if indice_actual < len(timetables) - 1:
+        indice_actual += 1
+        mostrar_combinacion(indice_actual)
+
+btn_anterior = tk.Button(root, text="Anterior", command=anterior)
+btn_anterior.grid(row=len(timeslots)+1, column=0, columnspan=2, sticky="ew")
+
+btn_siguiente = tk.Button(root, text="Siguiente", command=siguiente)
+btn_siguiente.grid(row=len(timeslots)+1, column=3, columnspan=3, sticky="ew")
+
+# Mostrar la primera combinacion
+mostrar_combinacion(indice_actual)
+
+root.mainloop()
+
+
+#correr con python3 prueba_interfaz.py
 
