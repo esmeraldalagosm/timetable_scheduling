@@ -23,4 +23,5 @@ This was designed base don Universidad Torcuato Di Tella's timetable designed (f
    - Filters out combinations with overlapping time slots
 
 3. It prints or returns all valid schedules.
+4. Tkinter interface: use python3 to run. Limited to 6 subjects due to color assignation (can be easily extended)
 
