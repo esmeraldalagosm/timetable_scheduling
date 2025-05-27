@@ -1,4 +1,4 @@
-### defincin de clase Comision
+### defincin de clase Seccion
 
 class Seccion: 
     def __init__(self, materia, seccion_id, horarios):

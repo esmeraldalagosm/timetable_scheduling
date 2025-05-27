@@ -14,6 +14,7 @@ from collections import defaultdict
 from itertools import product
 import tkinter as tk
 
+
 #carga de datos. Armo Secciones de las materias a las que me quier inscribir
 def upload_sections(path_csv, wanted_classes):
     """
@@ -110,6 +111,7 @@ print(timetables)
 # -----------------------------------
 # INTERFAZ con Tkinter
 
+
 dias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes"] 
 timeslots = [1, 2, 3, 4, 5]
 colores = ["#AEC6CF", "#FFB347", "#B39EB5", "#77DD77", "#FF6961", "#FDFD96"] #asumiendo que nunca me anoto en más de 6 materias. 
@@ -190,4 +192,3 @@ root.mainloop()
 
 
 #correr con python3 prueba_interfaz.py
-
