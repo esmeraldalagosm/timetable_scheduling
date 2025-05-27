@@ -14,7 +14,7 @@ This was designed base don Universidad Torcuato Di Tella's timetable designed (f
 ## 🔧 How It Works
 
 1. You provide:
-   - A CSV file with the following columns: `Materia`, `Sección`, `Día`, `Timeslot`
+   - A CSV file with the following columns: `Materia`, `Sección`, `Día`, `Timeslot`, `Tipo`
    - A list of classes you want to enroll in
 
 2. The script:
