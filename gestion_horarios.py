@@ -22,7 +22,7 @@ def upload_sections(path_csv, wanted_classes):
     secciones de materias y sus horarios, y crea una lista de objetos Seccion organizados correctamente (siempre y cuando me interese esa materia).
     wanted_clases es una lista de materias (solo nombre)
     """
-    secciones_temp = defaultdict(list)  # {(materia, comision_id): [(dia, timeslot), ...]}
+    secciones_temp = defaultdict(list)  # {(materia, comision_id): [(dia, timeslot, tipo), ...]}
     """
     Es una estructura de datos de Python (de collections) que se comporta como un diccionario normal, 
     pero si accedés a una clave que no existe, automáticamente la crea con una lista vacía.
@@ -36,7 +36,8 @@ def upload_sections(path_csv, wanted_classes):
                 seccion_id = int(fila["Sección"])
                 dia = fila["Día"].strip()
                 timeslot = int(fila["Timeslot"])
-                secciones_temp[(materia, seccion_id)].append((dia, timeslot))
+                tipo= fila["Tipo"].strip()
+                secciones_temp[(materia, seccion_id)].append((dia, timeslot, tipo))
 
         secciones = []
         for (materia, seccion_id), horarios in secciones_temp.items():
@@ -59,9 +60,10 @@ def hay_superposicion(combinacion) -> bool:
     timeslot_ocupados = set()
     for seccion in combinacion:
         for horario in seccion.horarios:
-            if horario in timeslot_ocupados:
+            hora = (horario[0], horario[1])
+            if hora in timeslot_ocupados:
                 return True
-            timeslot_ocupados.add(horario)
+            timeslot_ocupados.add(hora)
     return False
 
 #Ahora armo las combinaciones que no se superpongan. Fuerza bruta + backtraking? 
@@ -109,29 +111,26 @@ timetables = generar_timetables_validos(archivo, quiero)
 print(timetables)
 
 # -----------------------------------
-# INTERFAZ con Tkinter
-
+import tkinter as tk
 
 dias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes"] 
 timeslots = [1, 2, 3, 4, 5]
-colores = ["#AEC6CF", "#FFB347", "#B39EB5", "#77DD77", "#FF6961", "#FDFD96"] #asumiendo que nunca me anoto en más de 6 materias. 
-"""
-quiero[i] corresponde a colores[i]
-"""
+colores = ["#AEC6CF", "#FFB347", "#B39EB5", "#77DD77", "#FF6961", "#FDFD96"]  # máximo 6 materias
+
 root = tk.Tk()
 root.title("Generador de Horarios")
 
 # Etiquetas días
 for col, dia in enumerate(dias, start=1):
-    tk.Label(root, text=dia, borderwidth=1, relief="solid", width=12).grid(row=0, column=col)
+    tk.Label(root, text=dia, borderwidth=1, relief="solid", width=20).grid(row=0, column=col)
 
 # Etiquetas timeslots
+bloques = ["8 a 9.35", "9.45 a 11.20", "11.30 a 13.05", "13.45 a 15:10", "15.20 a 17:10"]
 for row, ts in enumerate(timeslots, start=1):
-    tk.Label(root, text=f"Slot {ts}", borderwidth=1, relief="solid", width=10).grid(row=row, column=0)
+    tk.Label(root, text= bloques[ts-1], borderwidth=1, relief="solid", width=10).grid(row=row, column=0)
 
 # Contenedor para las etiquetas de materias
 celdas = {}
-
 
 def mostrar_combinacion(index):
     # Limpiar etiquetas previas
@@ -145,28 +144,31 @@ def mostrar_combinacion(index):
     combinacion = timetables[index]
     root.title(f"Generador de Horarios - Combinación {index+1} de {len(timetables)}")
 
-    # Crear dict para fácil acceso (dia, timeslot) -> materia+sección
+    # Crear dict para fácil acceso
     horario = {}
     for seccion in combinacion:
-        for dia, ts in seccion.horarios:
-            horario[(dia, ts)] = f"{seccion.materia} S{seccion.seccion_id}"
-    # Pintar en grid
-    for (dia, ts), texto in horario.items():
-        col = dias.index(dia) + 1
-        row = ts
-        
-        materia = texto.split(" S")[0]
-        k = quiero.index(materia)
+        for dia, ts, tp in seccion.horarios:
+            horario[(dia, ts, tp)] = f"{seccion.materia} S{seccion.seccion_id}"
 
-        label = tk.Label(root, text=texto, bg=colores[k], borderwidth=1, relief="solid", width=12)
-        label.grid(row=row, column=col, sticky="nsew")
-        celdas[(row, col)] = label
-        
+    # Pintar celdas
+    for row, ts in enumerate(timeslots, start=1):
+        for col, dia in enumerate(dias, start=1):
+            # Buscar si hay clase en esta celda
+            contenido = ""
+            color = "white"
+            for (d, t, tp), texto in horario.items():
+                if d == dia and t == ts:
+                    contenido = texto + f" ({tp})"
+                    materia = texto.split(" S")[0]
+                    color = colores[quiero.index(materia)]
+                    break
+            label = tk.Label(root, text=contenido, bg=color, borderwidth=1, relief="solid", width=20)
+            label.grid(row=row, column=col, sticky="nsew")
+            celdas[(row, col)] = label
 
 # Variables para controlar índice
 indice_actual = 0
 
-# Botones para navegar
 def anterior():
     global indice_actual
     if indice_actual > 0:
@@ -179,16 +181,17 @@ def siguiente():
         indice_actual += 1
         mostrar_combinacion(indice_actual)
 
-btn_anterior = tk.Button(root, text="Anterior", command=anterior)
-btn_anterior.grid(row=len(timeslots)+1, column=0, columnspan=2, sticky="ew")
+# Frame para botones
+boton_frame = tk.Frame(root)
+boton_frame.grid(row=len(timeslots)+1, column=0, columnspan=len(dias)+1, pady=10)
 
-btn_siguiente = tk.Button(root, text="Siguiente", command=siguiente)
-btn_siguiente.grid(row=len(timeslots)+1, column=3, columnspan=3, sticky="ew")
+btn_anterior = tk.Button(boton_frame, text="Anterior", command=anterior, width=15)
+btn_anterior.pack(side="left", padx=10)
 
-# Mostrar la primera combinacion
+btn_siguiente = tk.Button(boton_frame, text="Siguiente", command=siguiente, width=15)
+btn_siguiente.pack(side="right", padx=10)
+
+# Mostrar primera combinación
 mostrar_combinacion(indice_actual)
 
 root.mainloop()
-
-
-#correr con python3 prueba_interfaz.py
