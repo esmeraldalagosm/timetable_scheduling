@@ -43,6 +43,8 @@ def upload_sections(path_csv, wanted_classes):
         for (materia, seccion_id), horarios in secciones_temp.items():
             secciones.append(Seccion(materia, seccion_id, horarios))
 
+        #for s in secciones:
+           # print(s.materia, s.seccion_id, s.horarios)
         return secciones 
     """
     lista de las secciones posibles para todas las materias a las que me quiero inscribir. 
@@ -66,7 +68,7 @@ def hay_superposicion(combinacion) -> bool:
             timeslot_ocupados.add(hora)
     return False
 
-#Ahora armo las combinaciones que no se superpongan. Fuerza bruta + backtraking? 
+
 def generar_timetables_validos(path_csv, wanted_classes):
     opciones_secciones = upload_sections(path_csv, wanted_classes)
     # En opciones_secciones tengo una lista de todas las secciones a las que me puedo inscribir.
@@ -106,14 +108,19 @@ def generar_timetables_validos(path_csv, wanted_classes):
 
 
 archivo = "data_prueba.csv" ### COMPLETAR CON ARCHIVO PROPIO (respetar formato)
-quiero = ["Algebra", "Matemática"] ### COMPLETAR CON LISTA DE MATERIAS
+quiero = ["Algebra", "Matemática", "Programación", "Economía", "Física"] ### COMPLETAR CON LISTA DE MATERIAS
 timetables = generar_timetables_validos(archivo, quiero)
-print(timetables)
-
+#print(timetables)
+"""
+for timetable in timetables:
+    for materia in timetable:   
+        print(materia)
+"""
 # -----------------------------------
+
 import tkinter as tk
 
-dias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes"] 
+dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"] 
 timeslots = [1, 2, 3, 4, 5]
 colores = ["#AEC6CF", "#FFB347", "#B39EB5", "#77DD77", "#FF6961", "#FDFD96"]  # máximo 6 materias
 
